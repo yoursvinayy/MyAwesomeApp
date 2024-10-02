@@ -17,8 +17,9 @@ const LoginScreen = () => {
             console.log('token is here',token)
             // Store token in AsyncStorage
             await AsyncStorage.setItem('userToken', token);
+            Aleart.alert("User LoggedIn")
             console.log('User logged in and token stored!');
-            navigation.navigate('Home');
+            navigation.navigate('Profile');
         } catch (error) {
             if (error.code === 'auth/email-already-in-use') {
                 console.log('That email address is already in use!');
@@ -65,7 +66,7 @@ const LoginScreen = () => {
             <Button
                 title="Login"
                 onPress={handleLogin}
-                color="#007BFF"
+                color="#ff8c00"
             />
             <TouchableOpacity onPress={() => navigation.navigate('SignUpScreen')} style={styles.toggleText}>
                 <Text style={styles.toggleText}>Don't have an account? Sign Up</Text>
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     toggleText: {
         textAlign: 'center',
         marginTop: 10,
-        color: '#007BFF',
+        color: '#ff8c00',
     },
 });
 

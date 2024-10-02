@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Dimensions, ImageBackground, Button } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Dimensions, Button } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
@@ -98,7 +98,7 @@ const ReelsScreen = () => {
             </TouchableOpacity>
         </View>
     );
-    
+
     const handleScroll = (event) => {
         const index = Math.round(event.nativeEvent.contentOffset.y / height);
         setCurrentIndex(index); // Update the current index when scrolling
@@ -106,23 +106,15 @@ const ReelsScreen = () => {
 
     return (
         <View style={styles.container}>
-            <ScrollView
-                ref={scrollViewRef}
+            <FlatList
+                data={reels}
+                keyExtractor={(item) => item.id}
+                renderItem={renderItem}
                 pagingEnabled
                 showsVerticalScrollIndicator={false}
-                onScroll={handleScroll} // Capture scroll event to update current reel
+                onScroll={handleScroll} // Capture scroll event to update the current reel
                 scrollEventThrottle={16} // Improve scroll performance
-            >
-                <FlatList
-                    data={reels}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderItem}
-                    pagingEnabled
-                    showsVerticalScrollIndicator={false}
-                    onScroll={handleScroll} // Capture scroll event to update the current reel
-                    scrollEventThrottle={16} // Improves scrolling performance
-                />
-            </ScrollView>
+            />
             <Button title="Upload Video" onPress={uploadVideo} color="#FFCE00" style={styles.uploadButton} />
         </View>
     );
@@ -134,8 +126,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#000', // Dark background for the entire screen
     },
     reelContainer: {
-        height: height,
-        width: width,
+        height: height, // Responsive to screen height
+        width: width, // Responsive to screen width
         justifyContent: 'center',
         alignItems: 'center',
         position: 'relative',
@@ -159,19 +151,19 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 8,
         padding: 10,
-        bottom: 200,
+        marginBottom: 20,
     },
     userText: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
     },
     actionsContainer: {
         position: 'absolute',
         right: 7,
-        bottom: 300, // Adjusted to move the container slightly above the bottom
-        alignItems: 'center', // Keep buttons aligned in the center
-        height: 150, // Adjust the height based on the number of action buttons
+        bottom: 150, // Keep responsive with the screen size
+        alignItems: 'center',
+        height: 150,
     },
     actionButton: {
         marginBottom: 20,
@@ -180,11 +172,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background for buttons
     },
     centerButton: {
-       
         position: 'absolute', // Position absolutely to center it
-        top: '30%', // Center vertically
-        left: '50%', // Center horizontally
-        transform: [{ translateX: -25 }, { translateY: -25 }], // Adjust for half of the icon size (50 / 2)
+        top: '45%', // Adjusted to center it vertically
+        left: '50%', // Adjusted to center it horizontally
+        transform: [{ translateX: -25 }, { translateY: -25 }], // Adjust for half of the icon size
     },
     uploadButton: {
         margin: 10,
@@ -192,6 +183,5 @@ const styles = StyleSheet.create({
         height: 30,
     },
 });
-
 
 export default ReelsScreen;

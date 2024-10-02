@@ -72,7 +72,7 @@ const SignUpScreen = () => {
         secureTextEntry
         placeholderTextColor='white' // Placeholder color for dark theme
       />
-      <Button title="Sign Up" onPress={handleSignUp} color="#007BFF" />
+      <Button title="Sign Up" onPress={handleSignUp} color="#ff8c00" />
     </View>
   );
 };
