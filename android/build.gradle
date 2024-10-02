@@ -12,10 +12,12 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("com.android.tools.build:gradle:8.1.0")
+        classpath("com.facebook.react:react-native-gradle-plugin:0.71.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("com.google.gms:google-services:4.3.15")  // Correct version for Groovy
     }
 }
 
+// Apply the React Native project plugin
 apply plugin: "com.facebook.react.rootproject"

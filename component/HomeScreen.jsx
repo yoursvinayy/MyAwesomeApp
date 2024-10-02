@@ -1,64 +1,98 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, Share } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useRoute, useNavigation } from '@react-navigation/native'; 
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   
   const [userToken, setUserToken] = useState(null);
+  const [likes, setLikes] = useState({}); // For storing likes
 
   useEffect(() => {
     const getToken = async () => {
       const token = await AsyncStorage.getItem('userToken');
-      setUserToken(token || null);  // Set userToken from AsyncStorage
+      setUserToken(token || null);
     };
 
-    getToken(); // Get user token when the component mounts
+    const getLikes = async () => {
+      const storedLikes = await AsyncStorage.getItem('likes');
+      setLikes(storedLikes ? JSON.parse(storedLikes) : {});
+    };
+
+    getToken();
+    getLikes(); // Get stored likes on component mount
   }, []);
 
-  console.log('user token is here----------////;;;;;', userToken);
-
-  // Define a mapping of images to dynamic content
-  const imageContentMap = {
-    'nature': 'Exploring the beauty of nature!',
-    'city': 'City lights and urban vibes!',
-    'technology': 'Latest trends in technology.',
-    'food': 'Delicious food to satisfy your cravings!',
-    'music': 'Enjoying some good music!',
-  };
-
-  // Generate posts with dynamic content based on images
+  // Define posts with dynamic content based on images
   const generatePosts = () => {
     const posts = [
-      { id: '1', user: 'Mohit', avatar: 'https://randomuser.me/api/portraits/men/1.jpg', imageUrl: 'https://picsum.photos/800/600?image=10' }, // Nature
-      { id: '2', user: 'Piyush', avatar: 'https://randomuser.me/api/portraits/men/1.jpg', imageUrl: 'https://picsum.photos/800/600?image=20' }, // City
-      { id: '3', user: 'Yours_vinayy', avatar: 'https://randomuser.me/api/portraits/women/2.jpg', imageUrl: 'https://picsum.photos/800/600?image=30' }, // Technology
-      { id: '4', user: 'Johan', avatar: 'https://randomuser.me/api/portraits/women/2.jpg', imageUrl: 'https://picsum.photos/800/600?image=40' }, // Food
-      { id: '5', user: 'Rohan', avatar: 'https://randomuser.me/api/portraits/men/3.jpg', imageUrl: 'https://picsum.photos/800/600?image=50' }, // Music
+      {
+        id: '1',
+        user: 'Mohit',
+        avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
+        imageUrl: 'https://picsum.photos/800/600?image=10',
+        description: 'Exploring the beautiful landscapes of nature. Breathtaking views and peaceful surroundings!'
+      },
+      {
+        id: '2',
+        user: 'Piyush',
+        avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
+        imageUrl: 'https://picsum.photos/800/600?image=20',
+        description: 'Capturing the energy and vibrancy of the city. The hustle and bustle never gets old!'
+      },
+      {
+        id: '3',
+        user: 'Yours_vinayy',
+        avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+        imageUrl: 'https://picsum.photos/800/600?image=30',
+        description: 'Staying ahead in the tech world! Here’s a glimpse of the latest technology trends.'
+      },
+      {
+        id: '4',
+        user: 'Johan',
+        avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+        imageUrl: 'https://picsum.photos/800/600?image=40',
+        description: 'Delicious food and good vibes! Trying out a new dish at my favorite restaurant.'
+      },
+      {
+        id: '5',
+        user: 'Rohan',
+        avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
+        imageUrl: 'https://picsum.photos/800/600?image=50',
+        description: 'Music is life! Here’s me jamming to some tunes and getting lost in the rhythm.'
+      },
     ];
+    
 
-    return posts.map(post => {
-      const keyword = post.imageUrl.split('?')[1];
-      const content = imageContentMap[keyword] || 'Here is a post!';
-
-      return {
-        ...post,
-        content,
-      };
-    });
+    return posts;
   };
 
   const [posts, setPosts] = useState(generatePosts());
 
-  const handleLike = (postId) => {
-    console.log(`Liked post with ID: ${postId}`);
+  // Handle like functionality
+  const handleLike = async (postId) => {
+    const newLikes = { ...likes, [postId]: !likes[postId] };
+    setLikes(newLikes);
+    await AsyncStorage.setItem('likes', JSON.stringify(newLikes));
   };
 
+  // Handle comment functionality
   const handleComment = (postId) => {
-    console.log(`Commented on post with ID: ${postId}`);
+    navigation.navigate('CommentsScreen', { postId });
+  };
+
+  // Handle share functionality
+  const handleShare = async (item) => {
+    try {
+      await Share.share({
+        message: `${item.user}'s post: ${item.imageUrl}`,
+      });
+    } catch (error) {
+      console.error('Error sharing the post:', error);
+    }
   };
 
   const renderItem = ({ item }) => (
@@ -70,18 +104,18 @@ const HomeScreen = () => {
       <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
       <View style={styles.actionRow}>
         <TouchableOpacity onPress={() => handleLike(item.id)} style={styles.actionButton}>
-          <Ionicons name="heart-outline" size={24} color="#333" />
+          <Ionicons name={likes[item.id] ? "heart" : "heart-outline"} size={24} color={likes[item.id] ? "red" : "#333"} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handleComment(item.id)} style={styles.actionButton}>
           <Ionicons name="chatbubble-outline" size={24} color="#333" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity onPress={() => handleShare(item)} style={styles.actionButton}>
           <Ionicons name="share-outline" size={24} color="#333" />
         </TouchableOpacity>
       </View>
       <View style={styles.postContent}>
-        <Text style={styles.username}>{item.user}</Text>
-        <Text style={styles.content}>{item.content}</Text>
+        {/* <Text style={styles.username}>{item.user}</Text> */}
+        <Text style={styles.content}>{item.description}</Text>
       </View>
     </View>
   );
@@ -89,12 +123,11 @@ const HomeScreen = () => {
   // Handle login/logout button press
   const handleLoginPress = async () => {
     if (userToken) {
-      // Logout and clear AsyncStorage
       await AsyncStorage.removeItem('userToken');
       setUserToken(null);
-      navigation.navigate('LoginScreen'); // Navigate to the login screen
+      navigation.navigate('LoginScreen');
     } else {
-      navigation.navigate('LoginScreen'); // Navigate to the login screen
+      navigation.navigate('LoginScreen');
     }
   };
 
@@ -165,7 +198,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-    color:'black'
+    color: 'black',
   },
   avatar: {
     width: 40,
@@ -176,7 +209,7 @@ const styles = StyleSheet.create({
   username: {
     fontWeight: 'bold',
     fontSize: 16,
-    color:'black'
+    color: 'black',
   },
   postImage: {
     width: '100%',
@@ -195,6 +228,7 @@ const styles = StyleSheet.create({
   },
   content: {
     marginTop: 5,
+    fontSize:16,
     color: '#333',
   },
 });
