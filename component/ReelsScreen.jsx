@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Dimensions, Button } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions, Button } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
@@ -13,7 +13,6 @@ const ReelsScreen = () => {
     const [reels, setReels] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0); // Track the current reel being displayed
     const videoRefs = useRef([]); // Ref to store video player instances
-    const scrollViewRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState({}); // Track play/pause state for each video
 
     useEffect(() => {
@@ -49,14 +48,20 @@ const ReelsScreen = () => {
                 await reference.putFile(videoUri);
                 const url = await reference.getDownloadURL();
 
-                await firestore().collection('videos').add({ video: url });
+                await firestore().collection('videos').add({ video: url, liked: false });
                 fetchVideos(); // Refresh video list
             }
         });
     };
 
-    const handleLike = (reelId) => {
-        console.log(`Liked reel: ${reelId}`);
+    const toggleLike = async (reelId, currentLikeStatus) => {
+        try {
+            const reelRef = firestore().collection('videos').doc(reelId);
+            await reelRef.update({ liked: !currentLikeStatus });
+            fetchVideos(); // Refresh the list to update the like state
+        } catch (error) {
+            console.error('Error updating like status: ', error);
+        }
     };
 
     const togglePlayPause = (index) => {
@@ -81,8 +86,14 @@ const ReelsScreen = () => {
                     <Text style={styles.userText}>{item.user || 'vinay'}</Text>
                 </View>
                 <View style={styles.actionsContainer}>
-                    <TouchableOpacity onPress={() => handleLike(item.id)} style={styles.actionButton}>
-                        <Ionicons name="heart-outline" size={30} color="#fff" />
+                    <TouchableOpacity 
+                        onPress={() => toggleLike(item.id, item.liked)} 
+                        style={styles.actionButton}>
+                        <Ionicons 
+                            name={item.liked ? "heart" : "heart-outline"} 
+                            size={30} 
+                            color={item.liked ? "red" : "#fff"} 
+                        />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionButton}>
                         <Ionicons name="chatbubble-outline" size={30} color="#fff" />
@@ -126,15 +137,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#000', // Dark background for the entire screen
     },
     reelContainer: {
-        height: height, // Responsive to screen height
-        width: width, // Responsive to screen width
+        height: height, // Full screen for each reel
+        width: width,
         justifyContent: 'center',
         alignItems: 'center',
         position: 'relative',
     },
     reelVideo: {
-        height: '100%',
-        width: '100%',
+        height: height*0.2, // Full screen height for video
+        width: width,   // Full screen width for video
     },
     gradientOverlay: {
         position: 'absolute',
@@ -151,7 +162,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.2)',
         borderRadius: 8,
         padding: 10,
-        marginBottom: 20,
+        marginBottom: 10,
+        alignSelf: 'flex-start',
     },
     userText: {
         color: '#fff',
@@ -160,21 +172,22 @@ const styles = StyleSheet.create({
     },
     actionsContainer: {
         position: 'absolute',
-        right: 7,
-        bottom: 150, // Keep responsive with the screen size
+        right: 20,
+        bottom: 150, // Adjusted for better visibility
         alignItems: 'center',
         height: 150,
+        justifyContent: 'space-between',
     },
     actionButton: {
-        marginBottom: 20,
         padding: 10,
         borderRadius: 30,
         backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background for buttons
+        marginBottom: 20, // Space between buttons
     },
     centerButton: {
-        position: 'absolute', // Position absolutely to center it
-        top: '45%', // Adjusted to center it vertically
-        left: '50%', // Adjusted to center it horizontally
+        position: 'absolute',
+        top: '45%', // Center the play/pause button vertically
+        left: '50%', // Center the play/pause button horizontally
         transform: [{ translateX: -25 }, { translateY: -25 }], // Adjust for half of the icon size
     },
     uploadButton: {
